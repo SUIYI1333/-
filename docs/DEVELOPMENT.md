@@ -37,16 +37,24 @@
 - 添加 .gitignore：不添加，保留现有规则。
 - 添加许可证：不添加新文件，保留已有 LICENSE、NOTICE、第三方许可及上游署名。
 
-本地原始 Git 仓库最初是浅克隆，本次已补齐上游历史和已有标签，不重新初始化或强制覆盖历史。自己的新仓库应为空，原作者远程保留为 `upstream`，自己的远程使用 `origin`。
+本地原始 Git 仓库最初是浅克隆，本次已补齐上游历史和已有标签，不重新初始化或强制覆盖历史。原作者远程保留为 `upstream`，自己的远程使用 `origin`。
 
-在用户确认自己的仓库地址后执行（将示例替换为实际地址）：
+2026-11-08，用户提供的仓库已关联为 `origin`：
 
-```powershell
-git remote add origin https://github.com/YOUR_ACCOUNT/music-box.git
-git push -u origin HEAD
+```text
+https://github.com/SUIYI1333/-.git
 ```
 
-当前工作分支为 `codex/windows-desktop`。首次推送可以直接将此分支设为 GitHub 默认分支；需要调整成 `main` 时先确认分支策略。不要对已有内容的远程仓库执行强制推送。
+该仓库创建时包含一条初始 README 提交。本地保留此提交并合并现有完整工程，README 使用完整项目说明；原始简短 README 仍可在初始化提交中查看，不强制覆盖远程历史。当前日常主分支为 `main`，新功能可使用 `codex/功能名` 分支。
+
+日常检查远程并备份当前已提交改动：
+
+```powershell
+git remote -v
+git push
+```
+
+本地 `main` 与 `origin/main` 建立跟踪关系，普通 `git push` 即可同步。不要向 `upstream` 推送，不使用强制推送；不同电脑都有改动时先获取和合并远程记录，再提交推送。
 
 “保存改动”有两个层次：Git commit 保存到本机历史；Git push 备份到自己的 GitHub。只提交到本机无法防止硬盘丢失。每次修改先查看 `git status --short` 和 `git diff`，按功能提交明确文件；检查通过后再推送到自己的 `origin`。分支用来隔离较大的功能开发，不为每一次小改动创建新仓库。
 
