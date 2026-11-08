@@ -1,5 +1,12 @@
 # Rhine Music · 开发与发布约定
 
+## 本地 Windows 工作区补充
+
+- 根目录整洁是必须遵守的长期约定，详见 README.md。源码归入 src/、desktop/、scripts/；临时材料归入 .tools/，构建归入 dist/，Windows 安装包归入 release/。不创建源码版本副本充当备份。
+- 当前用户授权整理本地工作区、保存本地 Git 提交、建立 Electron 开发测试入口及 Windows exe 本地打包入口。GitHub 仓库连接需使用用户提供的地址；不向 upstream 推送，不自动发布 Release。
+- 此 Windows 桌面工作是用户自己的本地衍生开发，以下原作者 macOS 发布授权不延伸为本衍生版本的外部发布授权。保留原作者的来源、许可和历史。
+- 桌面开发数据与正式数据隔离，自动验收使用静音合成样本；每次完成改动运行 npm run check:workspace、相关检查和规定构建。桌面改动另运行 npm run check:desktop。
+
 ## 当前版本
 
 - V0.6.1 基于本地 V0.6.0b 整理，V0.6.0b 的起点为本地 V0.5.0；旧版本目录保留，不回写。已搁置和冻结实验不自动继承。

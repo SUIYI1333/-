@@ -89,6 +89,7 @@ export async function createMusicServer({
   defaultRoots = process.env.MUSIC_ROOTS ? process.env.MUSIC_ROOTS.split(path.delimiter).filter(Boolean) : [],
   store: providedStore,
   autoScan = true,
+  frontend,
 } = {}) {
   const store = providedStore ?? await new MusicLibraryStore({ dataDir, defaultRoots }).init()
   const decoder = new AudioDecoder({ dataDir: store.dataDir ?? dataDir })
@@ -244,6 +245,7 @@ export async function createMusicServer({
       }
       if (route.startsWith('/api/')) return json(response, 404, { error: 'API 不存在或请求方法不支持' })
       if (!get) return json(response, 405, { error: '只接受 GET/HEAD' })
+      if (frontend) return frontend(request, response)
       const asset = path.resolve(distDir, `.${route === '/' ? '/index.html' : route}`)
       return await serveFile(request, response, { path: asset, allowedRoot: distDir }, { cache: route.startsWith('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache' })
     } catch (error) {
