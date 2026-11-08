@@ -50,7 +50,7 @@ test('private, research, PV and unlisted content cannot enter source or dist eve
   const f = await fixture(t)
   for (const file of [
     'music-data-test/library-index.json', 'promo/private-manifest.json',
-    'public/lighting-reference/frame.jpg', 'reference/unreviewed.png',
+    'public/lighting-reference/frame.jpg', 'reference/unreviewed.png', 'public/unreviewed.png',
     'public/audio/typing-preview.wav', 'docs/media/unreviewed.jpg',
     'dist/lighting-reference/frame.jpg', 'dist/audio/typing-preview.wav',
     'dist/library-index.json', 'dist/assets/index-Abcdef12.js.map',
@@ -67,8 +67,8 @@ test('private, research, PV and unlisted content cannot enter source or dist eve
 
 test('symlinks, missing runtime files, stale build resources and version mismatches fail', async t => {
   const f = await fixture(t)
-  await fs.unlink(path.join(f.root, 'reference/cover-candidates/generator.mjs'))
-  if (process.platform !== 'win32') await fs.symlink('generator.d.mts', path.join(f.root, 'reference/cover-candidates/generator.mjs'))
+  await fs.unlink(path.join(f.root, 'src/cover-generator.mjs'))
+  if (process.platform !== 'win32') await fs.symlink('cover-generator.d.mts', path.join(f.root, 'src/cover-generator.mjs'))
   await fs.unlink(path.join(f.root, 'native/RhineAudio.swift'))
   if (process.platform === 'win32') {
     await fs.rmdir(path.join(f.root, 'native'))
@@ -123,7 +123,7 @@ test('default audit requires a build, PWA cannot reference absent assets, and no
 
 test('private exports cannot hide under approved documentation filenames and a failed check creates no ZIP', async t => {
   const f = await fixture(t)
-  await f.write('docs/album-introductions/agent.md', '<!-- RHINE_ALBUM_TASK -->\n```json\n{"albums":[]}\n```\n<!-- /RHINE_ALBUM_TASK -->')
+  await f.write('content/album-introductions-agent.md', '<!-- RHINE_ALBUM_TASK -->\n```json\n{"albums":[]}\n```\n<!-- /RHINE_ALBUM_TASK -->')
   await f.write('content/archives.json', JSON.stringify({ format: 'rhine-album-introductions-result', version: 1, albums: [] }))
   const report = await inspectDistribution(f.root)
   assert.ok(report.errors.some(error => error.includes('静态文档混入')))

@@ -4,14 +4,14 @@
   "artifactName": "MusicBox-${version}-Windows-${arch}-Setup.${ext}",
   "asar": true,
   "electronDist": "node_modules/electron/dist",
-  "directories": { "output": "release", "buildResources": "desktop/resources" },
+  "directories": { "output": "../release", "buildResources": "desktop/resources" },
   "files": [
     "desktop/main.mjs", "desktop/runtime.mjs", "desktop/electron-builder.json",
     "scripts/music-server.mjs", "scripts/music-library.mjs", "scripts/music-audio.mjs",
     "scripts/music-lyrics.mjs", "scripts/music-lyrics-providers.mjs",
     "scripts/album-introduction-exchange.mjs", "scripts/album-introductions.mjs",
     "scripts/local-music-credits.mjs", "scripts/qq-credits.mjs",
-    "dist/**/*", "!dist/.music-build.json", "docs/album-introductions/agent.md",
+    "dist/**/*", "!dist/.music-build.json", "content/album-introductions-agent.md",
     "LICENSE", "NOTICE.md", "README.original.md", "package.json"
   ],
   "extraFiles": [

@@ -1,4 +1,4 @@
-import agentGuide from "../docs/album-introductions/agent.md?raw";
+import agentGuide from "../content/album-introductions-agent.md?raw";
 import { escapeHtml as esc } from "./html";
 import { introductionTaskDocument } from "./music-introduction-task";
 import { introductionResearchInstructions, introductionResearchProfiles, partitionIntroductionTask } from "./music-introduction-batching";

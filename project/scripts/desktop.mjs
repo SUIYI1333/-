@@ -37,7 +37,7 @@ try {
     await npm(['run', 'check:v061'])
     await npm(['run', 'check:desktop'])
     await run(process.execPath, ['node_modules/electron-builder/cli.js', '--config', 'desktop/electron-builder.json', '--win', '--x64', '--publish', 'never'])
-    console.log(`Installer output: ${path.join(projectDir, 'release')}`)
+    console.log(`Installer output: ${path.resolve(projectDir, '../release')}`)
   } else {
     if (mode === 'dev') await npm(['run', 'export:archives'])
     else if (!await fs.access(path.join(projectDir, 'dist/index.html')).then(() => true, () => false)) await npm(['run', 'build'])

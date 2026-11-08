@@ -38,6 +38,8 @@ test('packaged runtime serves production assets, rejects foreign origins, and cl
 test('development Vite and real music API share one origin with only silent fixture data', async t => {
   const directory = await fixture(t)
   const music = await prepareDevFixtures(path.join(directory, 'fixtures'))
+  await fs.mkdir(path.join(directory, 'data'))
+  await fs.writeFile(path.join(directory, 'data/config.json'), JSON.stringify({ version: 1, roots: [path.join(directory, 'old-workspace/fixtures')], onlineEnabled: false, foobarBaseUrl: null }))
   const runtime = await startDesktopRuntime({ projectDir, dataDir: path.join(directory, 'data'), dev: true, defaultRoots: [music] })
   t.after(runtime.close)
   await runtime.store.scan()
@@ -94,15 +96,16 @@ test('desktop preserves a chosen origin and refuses to take over an occupied por
 test('both Windows launchers work from an unrelated cwd with Chinese, spaces and shell metacharacters', { skip: process.platform !== 'win32' }, async t => {
   const directory = await fixture(t)
   const project = path.join(directory, '中文 & 空格 $() 工程')
-  await fs.mkdir(path.join(project, 'scripts'), { recursive: true })
-  await fs.writeFile(path.join(project, 'scripts/desktop.mjs'), 'console.log(JSON.stringify({cwd:process.cwd(),mode:process.argv[2]}))')
+  const engine = path.join(project, 'project')
+  await fs.mkdir(path.join(engine, 'scripts'), { recursive: true })
+  await fs.writeFile(path.join(engine, 'scripts/desktop.mjs'), 'console.log(JSON.stringify({cwd:process.cwd(),mode:process.argv[2]}))')
   for (const [launcher, mode] of [['启动开发测试.cmd', 'dev'], ['构建正式安装包.cmd', 'pack']]) {
     const file = path.join(project, launcher)
-    await fs.copyFile(path.join(projectDir, launcher), file)
+    await fs.copyFile(path.join(projectDir, '..', launcher), file)
     const result = spawnSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', `""${file}""`], { cwd: os.tmpdir(), encoding: 'utf8', windowsHide: true, windowsVerbatimArguments: true, timeout: 5000 })
     assert.equal(result.status, 0, result.stderr || result.stdout)
     const recorded = JSON.parse(result.stdout.split(/\r?\n/).find(line => line.startsWith('{')))
-    assert.equal(recorded.cwd, project)
+    assert.equal(recorded.cwd, engine)
     assert.equal(recorded.mode, mode)
   }
 })

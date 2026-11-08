@@ -32,6 +32,8 @@ export async function startDesktopRuntime({ projectDir, dataDir, dev = false, de
         server: { middlewareMode: true, hmr: { server }, watch: { ignored: ['**/.tools/**', '**/release/**'] } },
         appType: 'spa',
       })
+      // A moved workspace must not reuse the former fixture folder from config.
+      await store.updateConfig({ roots: defaultRoots })
       await store.scan()
     }
     await new Promise((resolve, reject) => {

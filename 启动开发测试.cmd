@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0project" || exit /b 1
 where node >nul 2>nul
 if errorlevel 1 (
   echo Node.js 22.12 or newer is required: https://nodejs.org/

@@ -1,4 +1,4 @@
-import { drawCover } from "../reference/cover-candidates/generator.mjs";
+import { drawCover } from "./cover-generator.mjs";
 
 export interface GeneratedCoverMetadata { id?: string; title: string; artist?: string }
 type CachedCover = { canvas: HTMLCanvasElement; dataUrl?: string };

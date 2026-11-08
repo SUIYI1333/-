@@ -156,9 +156,9 @@ test('content hash sees same-mtime edits and removals without rebuilding for REA
 
 test('cover algorithm edits rebuild production while study images do not', async (t) => {
   const root = await fixture(t)
-  const directory = path.join(root, 'reference/cover-candidates')
+  const directory = path.join(root, 'src')
   await fs.mkdir(directory, { recursive: true })
-  const file = path.join(directory, 'generator.mjs')
+  const file = path.join(directory, 'cover-generator.mjs')
   await fs.writeFile(file, 'export const layout = 1')
   const before = await buildFingerprint(root)
   const stat = await fs.stat(file)
@@ -166,7 +166,9 @@ test('cover algorithm edits rebuild production while study images do not', async
   await fs.utimes(file, stat.atime, stat.mtime)
   const after = await buildFingerprint(root)
   assert.notEqual(before, after)
-  await fs.writeFile(path.join(directory, 'comparison.png'), 'study output only')
+  const study = path.join(root, 'archive')
+  await fs.mkdir(study)
+  await fs.writeFile(path.join(study, 'comparison.png'), 'study output only')
   assert.equal(after, await buildFingerprint(root))
 })
 
@@ -176,14 +178,14 @@ test('installed ESM-only and type-only dependencies are ready without require en
 
 test('bundled agent guide changes invalidate the build; its user README does not', async (t) => {
   const root = await fixture(t)
-  const directory = path.join(root, 'docs/album-introductions')
+  const directory = path.join(root, 'content')
   await fs.mkdir(directory, { recursive: true })
-  await fs.writeFile(path.join(directory, 'agent.md'), 'First protocol')
+  await fs.writeFile(path.join(directory, 'album-introductions-agent.md'), 'First protocol')
   const before = await buildFingerprint(root)
-  await fs.writeFile(path.join(directory, 'agent.md'), 'Updated protocol')
+  await fs.writeFile(path.join(directory, 'album-introductions-agent.md'), 'Updated protocol')
   const after = await buildFingerprint(root)
   assert.notEqual(before, after)
-  await fs.writeFile(path.join(directory, 'README.md'), 'User guide only')
+  await fs.writeFile(path.join(root, 'README.md'), 'User guide only')
   assert.equal(after, await buildFingerprint(root))
 })
 

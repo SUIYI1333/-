@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { drawCover, coverWords, variants } from '../reference/cover-candidates/generator.mjs';
+import { drawCover, coverWords, variants } from '../src/cover-generator.mjs';
 
 // Deterministic text metrics verify content and layout contracts. Real MiSans
 // canvas rendering is checked separately in the browser, not simulated here.

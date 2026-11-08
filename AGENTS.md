@@ -2,7 +2,9 @@
 
 ## 本地 Windows 工作区补充
 
-- 根目录整洁是必须遵守的长期约定，详见 README.md。源码归入 src/、desktop/、scripts/；临时材料归入 .tools/，构建归入 dist/，Windows 安装包归入 release/。不创建源码版本副本充当备份。
+- 根目录整洁是必须遵守的长期约定，详见 README.md。根目录仅保留两个常用启动／构建入口、README.md、AGENTS.md、LICENSE、NOTICE.md 与隐藏 Git 配置；仅允许 project/、archive/、release/ 三个可见目录。不创建源码版本副本充当备份。
+- 主工程位于 project/，下文原版源码相对路径以它为基准；历史 DESIGN.md 与 docs/ 位于 archive/upstream/。非必要 Markdown、历史图片、建模源文件及研究材料不得放进主工程。project/public/ 只保留运行使用资源与许可，运行导出的专辑介绍规范位于 project/content/album-introductions-agent.md。原版来源和必要建模源文件归档保留，不删除。
+- 临时材料归入 project/.tools/，构建归入 project/dist/，依赖归入 project/node_modules/，Windows 安装包归入工作区 release/。运行 npm 命令须以 project/ 为工作目录，或在工作区根目录使用 npm --prefix project。
 - 当前用户授权整理本地工作区、保存本地 Git 提交、建立 Electron 开发测试入口及 Windows exe 本地打包入口。GitHub 仓库连接需使用用户提供的地址；不向 upstream 推送，不自动发布 Release。
 - 此 Windows 桌面工作是用户自己的本地衍生开发，以下原作者 macOS 发布授权不延伸为本衍生版本的外部发布授权。保留原作者的来源、许可和历史。
 - 桌面开发数据与正式数据隔离，自动验收使用静音合成样本；每次完成改动运行 npm run check:workspace、相关检查和规定构建。桌面改动另运行 npm run check:desktop。
@@ -17,7 +19,7 @@
 ## 数据与分发
 
 - 音乐服务只监听 127.0.0.1，保留目录边界及 Origin / Host 校验；音乐文件与标签只读。
-- 默认数据目录为工程旁 music-data-v3，可用 MUSIC_DATA_DIR 覆盖。开发验证使用隔离合成样本；未经用户明确授权不读取私人曲库，也不自动向外部平台检索其内容。
+- 浏览器版默认数据目录保留在工作区旁 music-data-v3，可用 MUSIC_DATA_DIR 覆盖；正式桌面数据为系统应用数据目录，开发测试为 project/.tools/dev/。开发验证使用隔离合成样本；未经用户明确授权不读取私人曲库，也不自动向外部平台检索其内容。
 - 运行时歌词优先本地同步 LRC／内嵌歌词，缺失时按当前曲目自动在线查询，只发送必要元数据，不上传音频或批量抓取。保留来源链接及开源服务与歌词内容版权的区别。
 - 专辑介绍采用 docs/album-introductions/agent.md 规范；用户导出任务后自行提供给 AI。结果通过本机接口预览、核对与备份后导入，不直接改数据库，不覆盖未获允许替换的内容。
 - 不提交歌曲、私人封面、索引、配置、令牌、本机路径、缓存、日志、AI 任务／结果导出、私人宣传片或研究素材。
