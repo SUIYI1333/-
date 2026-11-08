@@ -20,8 +20,13 @@ export async function findExecutable(name, override) {
     if (!path.isAbsolute(override)) throw failure(`${name} 路径必须是绝对路径`)
     return exists(override)
   }
-  for (const candidate of [...(override ? [override] : []), `/opt/homebrew/bin/${name}`, `/usr/local/bin/${name}`, `/usr/bin/${name}`, ...(process.env.PATH ?? '').split(path.delimiter).filter(Boolean).map((dir) => path.join(dir, name))]) {
-    if (override && candidate === override && !path.isAbsolute(candidate)) throw failure(`${name} 路径必须是绝对路径`)
+  const filename = process.platform === 'win32' && !path.extname(name) ? `${name}.exe` : name
+  const directories = [
+    fileURLToPath(new URL('../.tools/ffmpeg/bin/', import.meta.url)),
+    '/opt/homebrew/bin', '/usr/local/bin', '/usr/bin',
+    ...(process.env.PATH ?? '').split(path.delimiter).map(dir => dir.trim().replace(/^"(.*)"$/, '$1')).filter(Boolean),
+  ]
+  for (const candidate of directories.map(dir => path.join(dir, filename))) {
     if (await exists(candidate)) return candidate
   }
   return null

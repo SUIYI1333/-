@@ -6,6 +6,8 @@
 
 本版为 **macOS 本地源码发行版**，由本机 Node.js 服务与浏览器共同运行。下载后需要安装依赖并构建；不是 `.app` 安装包，不附带歌曲，普通使用无需 Blender。
 
+本工作副本以官方 `v0.6.1`（`e8723aa9b76836d296446ed973161484a40f8c3d`）为基准，补充 Windows 浏览器启动支持。Windows 双击 **[启动音乐播放器.cmd](启动音乐播放器.cmd)**，或运行 `npm start`。界面与交互沿用 V0.6.1，具体环境与验收范围见 [Windows 浏览器运行说明](docs/BROWSER-WINDOWS-V0.6.1.md)。以下官方 macOS 发布信息及作者署名保留。
+
 音乐适配与维护：[RonaldDeng](https://github.com/RonaldDeng) · 基于 [LBEILC / RhineLabUI](https://github.com/LBEILC/RhineLabUI)
 
 **[下载 V0.6.1 macOS 源码包](https://github.com/RonaldDeng/Rhine-Music-Demo/releases/download/v0.6.1/Rhine-Music-Demo-v0.6.1-macOS.zip)** · [Release](https://github.com/RonaldDeng/Rhine-Music-Demo/releases/tag/v0.6.1) · [SHA-256 校验](https://github.com/RonaldDeng/Rhine-Music-Demo/releases/download/v0.6.1/SHA256SUMS.txt) · [发布说明](docs/RELEASE-V0.6.1.md) · [验证与限制](docs/REVIEW-V0.6.1.md) · [版权与来源](NOTICE.md)

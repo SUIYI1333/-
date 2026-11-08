@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start": "node scripts/launch-music.mjs",
     "predev": "node scripts/export-records.mjs",
     "dev": "vite --host 127.0.0.1",
     "prebuild": "node scripts/export-records.mjs",

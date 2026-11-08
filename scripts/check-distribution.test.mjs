@@ -34,11 +34,13 @@ test('clean synthetic source and build pass without changing files; workspace de
   const f = await fixture(t)
   await f.write('node_modules/do-not-package/index.js', '// development-only dependency')
   await f.write('.tools/do-not-package.txt', 'local check output')
+  await f.write('dist/.music-build.json', JSON.stringify({ fingerprint: 'synthetic-build-fingerprint', builtAt: '2026-11-08T00:00:00.000Z' }))
   const before = await fs.stat(path.join(f.root, 'package.json'))
   const report = await inspectDistribution(f.root)
   assert.deepEqual(report.errors, [])
   assert.equal(report.ok, true)
   assert.ok(!report.sourceFiles.some(file => /node_modules|\.tools|^dist\//.test(file)))
+  assert.ok(!report.distFiles.includes('.music-build.json'))
   assert.deepEqual(report.omittedDirectories, ['.tools', 'node_modules'])
   assert.equal((await fs.stat(path.join(f.root, 'package.json'))).mtimeMs, before.mtimeMs)
   assert.ok(!report.sourceFiles.some(file => /\.zip$/.test(file)))
@@ -66,8 +68,13 @@ test('private, research, PV and unlisted content cannot enter source or dist eve
 test('symlinks, missing runtime files, stale build resources and version mismatches fail', async t => {
   const f = await fixture(t)
   await fs.unlink(path.join(f.root, 'reference/cover-candidates/generator.mjs'))
-  await fs.symlink('generator.d.mts', path.join(f.root, 'reference/cover-candidates/generator.mjs'))
+  if (process.platform !== 'win32') await fs.symlink('generator.d.mts', path.join(f.root, 'reference/cover-candidates/generator.mjs'))
   await fs.unlink(path.join(f.root, 'native/RhineAudio.swift'))
+  if (process.platform === 'win32') {
+    await fs.rmdir(path.join(f.root, 'native'))
+    await fs.mkdir(path.join(f.root, '.tools/linked-native'), { recursive: true })
+    await fs.symlink(path.join(f.root, '.tools/linked-native'), path.join(f.root, 'native'), 'junction')
+  }
   await f.write('dist/fonts/NOTICE.txt', 'stale fixture')
   await f.write('package-lock.json', JSON.stringify({ version: '0.4.3', packages: { '': { version: '0.4.3' } } }))
   const report = await inspectDistribution(f.root)
@@ -108,7 +115,7 @@ test('default audit requires a build, PWA cannot reference absent assets, and no
   await fs.chmod(path.join(f.root, '启动音乐播放器.command'), 0o644)
   let report = await inspectDistribution(f.root)
   assert.ok(report.errors.some(error => error.includes('离线清单')))
-  assert.ok(report.errors.some(error => error.includes('可执行权限')))
+  if (process.platform !== 'win32') assert.ok(report.errors.some(error => error.includes('可执行权限')))
   await fs.rm(path.join(f.root, 'dist'), { recursive: true })
   report = await inspectDistribution(f.root)
   assert.ok(report.errors.some(error => error.includes('先运行 npm run build')))
@@ -128,7 +135,8 @@ test('private exports cannot hide under approved documentation filenames and a f
 
 test('dist symlinks and escaping offline-cache paths are rejected without following them', async t => {
   const f = await fixture(t)
-  await fs.symlink('../../package.json', path.join(f.root, 'dist', 'assets', 'linked-Abcdef12.js'))
+  if (process.platform === 'win32') await fs.symlink(path.join(f.root, 'public'), path.join(f.root, 'dist', 'linked-Abcdef12.js'), 'junction')
+  else await fs.symlink('../../package.json', path.join(f.root, 'dist', 'assets', 'linked-Abcdef12.js'))
   await f.write('dist/pwa-build.json', JSON.stringify({ files: ['/outside.json', '../outside.json', 'assets/../../outside.json'] }))
   const report = await inspectDistribution(f.root)
   assert.ok(report.errors.some(error => error.includes('linked-Abcdef12.js') && error.includes('符号链接')))
@@ -165,7 +173,7 @@ test('entry graph follows lazy chunks and their CSS; absent listed files and bro
   assert.ok(report.errors.some(error => error.includes('check-interface-audio.mjs') && error.includes('缺少')))
 })
 
-test('real ZIP round trip preserves the exact source set, UTF-8 launcher names, bytes and permissions; existing outputs are never replaced', async t => {
+test('real ZIP round trip preserves the exact source set, UTF-8 launcher names, bytes and permissions; existing outputs are never replaced', { skip: process.platform === 'win32' ? 'POSIX source ZIP executable permissions require macOS/Linux; browser distribution is checked separately' : false }, async t => {
   const f = await fixture(t)
   const launchers = requiredSourceFiles.filter(file => file.endsWith('.command'))
   for (const file of launchers) await f.write(file, '#!/bin/sh\n# 合成启动器：仅供打包验证\nexit 0\n')

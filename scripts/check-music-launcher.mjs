@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
-import { supportedNode, dependenciesReady, buildFingerprint, probeMusicService, choosePort, launchMusic, sameLegacyProcess, SERVICE_ID } from './launch-music.mjs'
+import { supportedNode, dependenciesReady, buildFingerprint, probeMusicService, choosePort, launchMusic, sameLegacyProcess, npmInvocation, openBrowser, SERVICE_ID } from './launch-music.mjs'
 import { createMusicServer } from './music-server.mjs'
 
 const PROJECT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
@@ -22,6 +22,41 @@ const free = async (port) => ({ port, kind: 'free' })
 test('Node engine matches the installed Vite requirement', () => {
   for (const version of ['20.19.0', '22.12.0', '24.0.0', '26.3.0']) assert.equal(supportedNode(version), true)
   for (const version of ['18.20.0', '20.18.0', '21.7.0', '22.11.0']) assert.equal(supportedNode(version), false)
+})
+
+test('Windows npm invocation preserves Chinese/spaced paths without a command shell', async t => {
+  const root = await fixture(t)
+  const cli = path.join(root, 'npm-cli.js')
+  await fs.writeFile(cli, 'console.log(JSON.stringify(process.argv.slice(2)))')
+  const invocation = await npmInvocation(['run', 'build'], { platform: 'win32', env: { npm_execpath: cli } })
+  assert.equal(invocation.command, process.execPath)
+  const result = spawnSync(invocation.command, invocation.args, { encoding: 'utf8', shell: false, windowsHide: true })
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(result.stdout), ['run', 'build'])
+  assert.deepEqual(await npmInvocation(['ci'], { platform: 'darwin' }), { command: 'npm', args: ['ci'] })
+})
+
+test('browser opening uses platform commands with literal URL arguments', () => {
+  const url = 'http://127.0.0.1:5175/?demo=1&example=2'
+  const calls = []
+  const run = (...args) => { calls.push(args); return { status: 0 } }
+  for (const platform of ['win32', 'darwin', 'linux']) openBrowser(url, { platform, run })
+  assert.deepEqual(calls.map(call => call.slice(0, 2)), [
+    ['rundll32.exe', ['url.dll,FileProtocolHandler', url]],
+    ['/usr/bin/open', [url]], ['xdg-open', [url]],
+  ])
+  assert.ok(calls.every(call => call[2].shell === false && call[2].windowsHide))
+})
+
+test('Windows double-click launcher preserves Chinese/spaced cwd from another directory', { skip: process.platform !== 'win32' }, async t => {
+  const root = await fixture(t)
+  await fs.mkdir(path.join(root, 'scripts'))
+  const command = path.join(root, '启动音乐播放器.cmd')
+  await fs.copyFile(path.join(PROJECT_DIR, '启动音乐播放器.cmd'), command)
+  await fs.writeFile(path.join(root, 'scripts/launch-music.mjs'), 'console.log(JSON.stringify({cwd:process.cwd()}))')
+  const result = spawnSync(process.env.ComSpec || 'cmd.exe', ['/d', '/s', '/c', `""${command}""`], { cwd: os.tmpdir(), encoding: 'utf8', windowsHide: true, windowsVerbatimArguments: true })
+  assert.equal(result.status, 0, result.stderr || result.stdout)
+  assert.equal(JSON.parse(result.stdout.trim()).cwd, root)
 })
 
 test('health identity distinguishes our project, another project, HTML, and free ports', async () => {
@@ -152,7 +187,7 @@ test('bundled agent guide changes invalidate the build; its user README does not
   assert.equal(after, await buildFingerprint(root))
 })
 
-test('Finder command changes cwd safely from another directory', async (t) => {
+test('Finder command changes cwd safely from another directory', { skip: process.platform === 'win32' }, async (t) => {
   const projectDir = await fixture(t)
   await fs.mkdir(path.join(projectDir, 'scripts'))
   const command = path.join(projectDir, '启动音乐播放器.command')

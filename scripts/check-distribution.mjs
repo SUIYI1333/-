@@ -77,6 +77,9 @@ export async function inspectDistribution(root, { requireDist = true } = {}) {
       if (/[^\S ]|[\x00-\x1f\x7f]/.test(entry.name)) { fail(relative, '文件名含控制字符'); continue }
       if (kind === 'source' && !prefix && localOnlyDirectories.has(entry.name)) { omittedDirectories.push(entry.name); continue }
       if (kind === 'source' && !prefix && entry.name === 'dist') continue
+      // The launcher writes this local build fingerprint after a successful
+      // build. It is neither a browser resource nor a source package entry.
+      if (kind === 'dist' && !prefix && entry.name === '.music-build.json' && entry.isFile()) continue
       if (entry.isSymbolicLink()) { fail(relative, '不允许符号链接'); continue }
       if (entry.name === '.DS_Store' && kind === 'source') continue
       if (forbiddenPath(relative)) { fail(relative, '含私人数据、原片素材或已移除采样路径'); continue }
@@ -132,7 +135,8 @@ export async function inspectDistribution(root, { requireDist = true } = {}) {
     }
   }
   for (const file of sourceFiles.filter(file => file.endsWith('.command'))) {
-    if (!((await fs.stat(path.join(root, file))).mode & 0o111)) fail(file, '启动器缺少可执行权限')
+    // NTFS has no POSIX executable bits; retain the check on POSIX hosts.
+    if (process.platform !== 'win32' && !((await fs.stat(path.join(root, file))).mode & 0o111)) fail(file, '启动器缺少可执行权限')
   }
 
   if (requireDist) {

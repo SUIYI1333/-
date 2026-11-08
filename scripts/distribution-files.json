@@ -39,6 +39,7 @@
     "content/README.md",
     "content/archives.json",
     "docs/AUDIO-V0.4.0.md",
+    "docs/BROWSER-WINDOWS-V0.6.1.md",
     "docs/COLUMN-POSITION-V0.4.1.md",
     "docs/COMMUNITY-VERSIONS.md",
     "docs/DISTRIBUTION-V0.5.0.md",
@@ -337,6 +338,7 @@
     "tools/launchers/README.md",
     "tools/launchers/启动演示.command",
     "tsconfig.json",
-    "启动音乐播放器.command"
+    "启动音乐播放器.command",
+    "启动音乐播放器.cmd"
   ]
 }

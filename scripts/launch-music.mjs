@@ -80,9 +80,21 @@ export async function choosePort(projectDir, probe = probeMusicService, preferre
   return available
 }
 
+export async function npmInvocation(args, { platform = process.platform, execPath = process.execPath, env = process.env } = {}) {
+  if (platform !== 'win32') return { command: 'npm', args }
+  // Run npm's JS entry directly: .cmd cannot be spawned without a shell, and
+  // shell interpolation would corrupt Chinese/spaced paths and metacharacters.
+  const candidates = [env.npm_execpath, path.join(path.dirname(execPath), 'node_modules/npm/bin/npm-cli.js')]
+  for (const candidate of candidates) {
+    if (candidate && path.isAbsolute(candidate) && await exists(candidate)) return { command: execPath, args: [candidate, ...args] }
+  }
+  throw new Error('没有找到 npm。请重新安装包含 npm 的 Node.js LTS 版本。')
+}
+
 async function runNpm(args, projectDir) {
+  const invocation = await npmInvocation(args)
   await new Promise((resolve, reject) => {
-    const child = spawn('npm', args, { cwd: projectDir, stdio: 'inherit' })
+    const child = spawn(invocation.command, invocation.args, { cwd: projectDir, stdio: 'inherit', windowsHide: true, shell: false })
     child.once('error', reject)
     child.once('exit', (code) => code === 0 ? resolve() : reject(new Error(`npm ${args.join(' ')} 未完成（退出码 ${code}）。请查看上方信息后重试。`)))
   })
@@ -135,7 +147,8 @@ export async function buildFingerprint(projectDir) {
 
 async function prepareBuild(projectDir) {
   if (!supportedNode(process.versions.node)) throw new Error(`当前 Node.js ${process.versions.node} 不满足要求。请安装 Node.js 22.12 或更新的 LTS 版本。`)
-  if (spawnSync('npm', ['--version'], { stdio: 'ignore' }).status !== 0) throw new Error('没有找到 npm。请重新安装包含 npm 的 Node.js LTS 版本。')
+  const npm = await npmInvocation(['--version'])
+  if (spawnSync(npm.command, npm.args, { stdio: 'ignore', windowsHide: true, shell: false }).status !== 0) throw new Error('没有找到 npm。请重新安装包含 npm 的 Node.js LTS 版本。')
   if (!await dependenciesReady(projectDir)) {
     console.log('首次准备或依赖已更新：正在安装锁定版本的依赖（需要联网）…')
     await runNpm(['ci'], projectDir)
@@ -195,7 +208,7 @@ async function startServer(projectDir, dataDir, port) {
   let startupError
   try {
     child = spawn(process.execPath, [path.join(projectDir, 'scripts/music-server.mjs'), '--port', String(port)], {
-      cwd: projectDir, detached: true,
+      cwd: projectDir, detached: true, windowsHide: true,
       env: { ...process.env, MUSIC_DATA_DIR: dataDir },
       stdio: ['ignore', log.fd, log.fd],
     })
@@ -215,8 +228,10 @@ async function startServer(projectDir, dataDir, port) {
   throw new Error(`播放器尚未就绪。${startupError?.message ?? ''}\n日志：${logPath}\n${tail}`)
 }
 
-function openBrowser(url) {
-  const result = spawnSync('/usr/bin/open', [url], { stdio: 'ignore' })
+export function openBrowser(url, { platform = process.platform, run = spawnSync } = {}) {
+  const command = platform === 'win32' ? 'rundll32.exe' : platform === 'darwin' ? '/usr/bin/open' : 'xdg-open'
+  const args = platform === 'win32' ? ['url.dll,FileProtocolHandler', url] : [url]
+  const result = run(command, args, { stdio: 'ignore', windowsHide: true, shell: false })
   if (result.status !== 0) console.log(`浏览器未自动打开，请手动访问：${url}`)
 }
 
